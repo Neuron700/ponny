@@ -1,0 +1,42 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# Testing and linting
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Database lokal dan file pengguna
+*.db
+*.db-wal
+*.db-shm
+/data/*.csv
+/*.csv
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Secrets dan environment lokal
+.env
+.env.*
+!.env.example
+
+# OS dan editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.log
