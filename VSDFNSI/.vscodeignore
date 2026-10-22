@@ -1,0 +1,16 @@
+src/**
+test/**
+.vscode/**
+node_modules/**
+coverage/**
+*.vsix
+tsconfig.json
+tsconfig.test.json
+eslint.config.mjs
+vitest.config.ts
+.prettierrc.json
+package-lock.json
+.gitignore
+out/**
+!out/extension.js
+!out/extension.js.map

@@ -1,0 +1,369 @@
+{
+  "name": "repoguard",
+  "displayName": "RepoGuard — VS Code Security Assistant",
+  "description": "Local-first, rule-based security hygiene checks for source code and configuration files.",
+  "version": "0.1.0",
+  "publisher": "repoguard",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "security",
+    "secrets",
+    "sast",
+    "lint",
+    "privacy"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onView:repoguard.findings",
+    "onCommand:repoguard.scanWorkspace",
+    "onCommand:repoguard.scanCurrentFile",
+    "onCommand:repoguard.refresh",
+    "onCommand:repoguard.clear",
+    "onCommand:repoguard.manageIgnored",
+    "onCommand:repoguard.exportReport",
+    "onCommand:repoguard.searchFindings",
+    "onCommand:repoguard.setSeverityFilter",
+    "onCommand:repoguard.toggleGroupBy",
+    "onCommand:repoguard.toggleIgnored"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "RepoGuard reads workspace files. Open the folder as trusted to run scans."
+    }
+  },
+  "contributes": {
+    "configuration": {
+      "title": "RepoGuard",
+      "properties": {
+        "repoguard.scanOnSave": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Scan the saved file for findings. Scans run locally and only when the workspace is trusted.",
+          "scope": "resource"
+        },
+        "repoguard.includeExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "js",
+            "jsx",
+            "ts",
+            "tsx",
+            "mjs",
+            "cjs",
+            "py",
+            "json",
+            "jsonc",
+            "yaml",
+            "yml",
+            "toml",
+            "env",
+            "ini",
+            "cfg",
+            "conf",
+            "properties",
+            "sh",
+            "bash",
+            "ps1",
+            "go",
+            "rb",
+            "java",
+            "php",
+            "cs",
+            "rs"
+          ],
+          "markdownDescription": "File extensions to scan (without the leading dot). Environment files named `.env` and `.env.*` are always considered."
+        },
+        "repoguard.excludePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/node_modules/**",
+            "**/.git/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/out/**",
+            "**/coverage/**",
+            "**/vendor/**",
+            "**/.venv/**",
+            "**/venv/**",
+            "**/__pycache__/**",
+            "**/.next/**",
+            "**/.nuxt/**",
+            "**/target/**",
+            "**/bin/**",
+            "**/obj/**",
+            "**/*.min.js",
+            "**/*.map"
+          ],
+          "markdownDescription": "Glob patterns excluded from scanning. Defaults cover dependencies, VCS metadata, and generated output."
+        },
+        "repoguard.maxFileSizeKb": {
+          "type": "number",
+          "default": 512,
+          "minimum": 1,
+          "maximum": 10240,
+          "markdownDescription": "Maximum file size to scan, in kilobytes. Larger files are skipped and reported in the scan summary."
+        },
+        "repoguard.enabledRules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "markdownDescription": "When non-empty, only these rule IDs run (for example `RG001`). Leave empty to run every rule except disabled ones."
+        },
+        "repoguard.disabledRules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "markdownDescription": "Rule IDs to skip, for example `RG005`. Disabled rules are reported in the scan output as skipped."
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "repoguard",
+          "title": "RepoGuard",
+          "icon": "media/shield.svg"
+        }
+      ]
+    },
+    "views": {
+      "repoguard": [
+        {
+          "id": "repoguard.findings",
+          "name": "Findings",
+          "icon": "media/shield.svg",
+          "contextualTitle": "RepoGuard Findings"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "repoguard.findings",
+        "contents": "RepoGuard checks source and configuration files for common security hygiene issues.\n\nAnalysis runs locally. Nothing is uploaded.\n\n[Scan Workspace](command:repoguard.scanWorkspace)\n[Scan Current File](command:repoguard.scanCurrentFile)\n\nResults are heuristic and can contain false positives."
+      }
+    ],
+    "commands": [
+      {
+        "command": "repoguard.scanWorkspace",
+        "title": "Scan Workspace",
+        "category": "RepoGuard",
+        "icon": "$(play)"
+      },
+      {
+        "command": "repoguard.scanCurrentFile",
+        "title": "Scan Current File",
+        "category": "RepoGuard",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "repoguard.refresh",
+        "title": "Refresh Findings",
+        "category": "RepoGuard",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "repoguard.clear",
+        "title": "Clear Findings",
+        "category": "RepoGuard",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "repoguard.manageIgnored",
+        "title": "Manage Ignored Findings",
+        "category": "RepoGuard",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "repoguard.exportReport",
+        "title": "Export Report",
+        "category": "RepoGuard",
+        "icon": "$(export)"
+      },
+      {
+        "command": "repoguard.searchFindings",
+        "title": "Search Findings",
+        "category": "RepoGuard",
+        "icon": "$(search)"
+      },
+      {
+        "command": "repoguard.setSeverityFilter",
+        "title": "Filter by Severity",
+        "category": "RepoGuard",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "repoguard.toggleGroupBy",
+        "title": "Toggle Group By Severity or File",
+        "category": "RepoGuard",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "repoguard.toggleIgnored",
+        "title": "Show or Hide Ignored Findings",
+        "category": "RepoGuard",
+        "icon": "$(eye-closed)"
+      },
+      {
+        "command": "repoguard.openFinding",
+        "title": "Open Finding",
+        "category": "RepoGuard"
+      },
+      {
+        "command": "repoguard.showFindingDetails",
+        "title": "Show Finding Details",
+        "category": "RepoGuard",
+        "icon": "$(info)"
+      },
+      {
+        "command": "repoguard.ignoreFinding",
+        "title": "Ignore Finding",
+        "category": "RepoGuard",
+        "icon": "$(circle-slash)"
+      },
+      {
+        "command": "repoguard.restoreFinding",
+        "title": "Restore Finding",
+        "category": "RepoGuard",
+        "icon": "$(discard)"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "repoguard.openFinding",
+          "when": "false"
+        },
+        {
+          "command": "repoguard.ignoreFinding",
+          "when": "false"
+        },
+        {
+          "command": "repoguard.restoreFinding",
+          "when": "false"
+        },
+        {
+          "command": "repoguard.showFindingDetails",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "repoguard.scanWorkspace",
+          "when": "view == repoguard.findings",
+          "group": "navigation@1"
+        },
+        {
+          "command": "repoguard.refresh",
+          "when": "view == repoguard.findings",
+          "group": "navigation@2"
+        },
+        {
+          "command": "repoguard.searchFindings",
+          "when": "view == repoguard.findings",
+          "group": "navigation@3"
+        },
+        {
+          "command": "repoguard.setSeverityFilter",
+          "when": "view == repoguard.findings",
+          "group": "navigation@4"
+        },
+        {
+          "command": "repoguard.toggleGroupBy",
+          "when": "view == repoguard.findings",
+          "group": "overflow@1"
+        },
+        {
+          "command": "repoguard.toggleIgnored",
+          "when": "view == repoguard.findings",
+          "group": "overflow@2"
+        },
+        {
+          "command": "repoguard.manageIgnored",
+          "when": "view == repoguard.findings",
+          "group": "overflow@3"
+        },
+        {
+          "command": "repoguard.exportReport",
+          "when": "view == repoguard.findings",
+          "group": "overflow@4"
+        },
+        {
+          "command": "repoguard.clear",
+          "when": "view == repoguard.findings",
+          "group": "overflow@5"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "repoguard.ignoreFinding",
+          "when": "view == repoguard.findings && viewItem == repoguard.finding.active",
+          "group": "inline@1"
+        },
+        {
+          "command": "repoguard.restoreFinding",
+          "when": "view == repoguard.findings && viewItem == repoguard.finding.ignored",
+          "group": "inline@1"
+        },
+        {
+          "command": "repoguard.showFindingDetails",
+          "when": "view == repoguard.findings && viewItem =~ /^repoguard\\.finding/",
+          "group": "inline@2"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "repoguard.scanCurrentFile",
+          "when": "editorTextFocus",
+          "group": "repoguard@1"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p tsconfig.json && npm run bundle",
+    "bundle": "esbuild src/extension.ts --bundle --platform=node --target=node18 --external:vscode --format=cjs --outfile=out/extension.js --sourcemap",
+    "watch": "tsc -w -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json",
+    "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"*.json\" \"*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "package": "vsce package --no-dependencies --allow-missing-repository",
+    "pretest": "npm run compile"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.28.2",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1",
+    "vitest": "^3.2.0"
+  },
+  "dependencies": {
+    "minimatch": "^9.0.5"
+  }
+}
